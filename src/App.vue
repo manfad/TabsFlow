@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import Notepad from './components/Notepad.vue';
-import StoreJsonPad from './components/storeJsonPad.vue';
 import JsonPad from './components/JsonPad.vue';
+import Mappad from './components/Mappad.vue';
 
 // Shared state for notepad lines
 const notepadLines = ref([''])
@@ -17,12 +17,12 @@ const notepadLines = ref([''])
       </div>
       <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; min-width: 0;">
         <h2 style="margin: 0 0 10px 0;">JSON Store</h2>
-        <StoreJsonPad :lines="notepadLines" style="flex: 1; min-height: 0; min-width: 0;" />
+        <JsonPad :lines="notepadLines" style="flex: 1; min-height: 0; min-width: 0;" />
       </div>
     </div>
     <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; min-width: 0; max-width: 50%;">
-      <h2 style="margin: 0 0 10px 0;">JsonPad</h2>
-      <JsonPad :lines="notepadLines" style="flex: 1; min-height: 0; min-width: 0;" />
+      <h2 style="margin: 0 0 10px 0;">MapPad</h2>
+      <Mappad :lines="notepadLines" style="flex: 1; min-height: 0; min-width: 0;" />
     </div>
   </div>
 </template>
