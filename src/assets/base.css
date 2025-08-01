@@ -1,0 +1,10 @@
+:root{
+    font-family: 'Fira Code', Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-size: 20px;
+    box-sizing: border-box;
+}
+
+body{
+    margin: 0;
+    padding: 0;
+}
