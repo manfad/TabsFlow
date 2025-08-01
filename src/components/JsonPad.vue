@@ -113,14 +113,6 @@ const formattedJson = computed(() => {
 
 <template>
   <div class="json-pad">
-    <div class="header">
-      <h3>Hierarchical JSON Output</h3>
-      <div class="stats">
-        <span>{{ parseLines.length }} items</span>
-        <span>{{ Object.keys(buildHierarchy).length }} top-level</span>
-      </div>
-    </div>
-    
     <div class="json-display">
       <pre class="json-content">{{ formattedJson }}</pre>
     </div>

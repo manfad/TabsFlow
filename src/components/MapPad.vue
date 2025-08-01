@@ -222,14 +222,6 @@ const onLoad = () => {
 
 <template>
   <div class="map-pad">
-    <div class="header">
-      <h3>Hierarchical Diagram</h3>
-      <div class="stats">
-        <span>{{ parseLines.length }} nodes</span>
-        <span>{{ edges.length }} connections</span>
-      </div>
-    </div>
-    
     <div class="flow-container">
       <VueFlow 
         :nodes="nodes" 
