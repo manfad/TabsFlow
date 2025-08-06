@@ -4,6 +4,15 @@ import { VueFlow, useVueFlow, Panel } from '@vue-flow/core'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 
+// Tooltip state
+const tooltip = ref({
+  show: false,
+  x: 0,
+  y: 0,
+  title: '',
+  description: ''
+})
+
 const props = defineProps<{
   lines: string[]
 }>()
@@ -11,6 +20,7 @@ const props = defineProps<{
 interface ParsedLine {
   level: number
   text: string
+  description: string
   originalIndex: number
 }
 
@@ -33,9 +43,21 @@ const parseLines = computed((): ParsedLine[] => {
       }
     }
     
+    // Split text and description on first colon
+    const trimmedText = text.trim()
+    const colonIndex = trimmedText.indexOf(':')
+    let finalText = trimmedText
+    let description = ''
+    
+    if (colonIndex !== -1) {
+      finalText = trimmedText.substring(0, colonIndex).trim()
+      description = trimmedText.substring(colonIndex + 1).trim()
+    }
+    
     return {
       level,
-      text: text.trim(),
+      text: finalText,
+      description,
       originalIndex: index
     }
   }).filter(line => line.text !== '') // Remove empty lines
@@ -54,7 +76,7 @@ const flowData = computed(() => {
   
   lines.forEach((line, index) => {
     const nodeId = `node-${index}`
-    const { level, text } = line
+    const { level, text, description } = line
     
     // Calculate position
     const x = level * 200 + 50
@@ -66,8 +88,11 @@ const flowData = computed(() => {
       type: 'default',
       position: { x, y },
       data: { 
-        label: text,
-        level: level
+        label: description !== '' ? `${text} ℹ️` : text,
+        originalLabel: text,
+        level: level,
+        description: description,
+        hasDescription: description !== ''
       },
       style: {
         background: getNodeColor(level),
@@ -80,6 +105,7 @@ const flowData = computed(() => {
         minWidth: '120px',
         textAlign: 'center'
       },
+      class: description !== '' ? 'node-with-description' : '',
       // CHANGED: Set horizontal connection points
       sourcePosition: 'right',
       targetPosition: 'left'
@@ -148,6 +174,28 @@ const layoutType = ref<'tree' | 'compact' | 'radial' | 'linear'>('tree')
 
 // Vue Flow setup
 const { fitView, setNodes } = useVueFlow()
+
+// Node click handler for tooltip
+const onNodeClick = (event: any) => {
+  const node = event.node
+  const nodeElement = event.event.target.closest('.vue-flow__node')
+  
+  if (node.data.hasDescription) {
+    const rect = nodeElement.getBoundingClientRect()
+    tooltip.value = {
+      show: true,
+      x: rect.right + 10,
+      y: rect.top + rect.height / 2,
+      title: node.data.originalLabel,
+      description: node.data.description
+    }
+  }
+}
+
+// Hide tooltip when clicking elsewhere
+const hideTooltip = () => {
+  tooltip.value.show = false
+}
 
 // Tree layout algorithm
 const applyTreeLayout = () => {
@@ -227,6 +275,8 @@ const onLoad = () => {
         :nodes="nodes" 
         :edges="edges"
         @vue-flow:load="onLoad"
+        @node-click="onNodeClick"
+        @pane-click="hideTooltip"
         :default-viewport="{ zoom: 1, x: 0, y: 0 }"
         :min-zoom="0.2"
         :max-zoom="4"
@@ -250,6 +300,21 @@ const onLoad = () => {
           </button>
         </Panel>
       </VueFlow>
+    </div>
+    
+    <!-- Tooltip -->
+    <div 
+      v-if="tooltip.show" 
+      class="node-tooltip"
+      :style="{
+        left: tooltip.x + 'px',
+        top: tooltip.y + 'px'
+      }"
+      @click.stop
+    >
+      <div class="tooltip-title">{{ tooltip.title }}</div>
+      <div class="tooltip-description">{{ tooltip.description }}</div>
+      <div class="tooltip-arrow"></div>
     </div>
   </div>
 </template>
@@ -388,5 +453,65 @@ const onLoad = () => {
   background: rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 50%;
+}
+
+/* Tooltip Styles */
+.node-tooltip {
+  position: fixed;
+  z-index: 1000;
+  background: white;
+  border: 2px solid #2196f3;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 12px;
+  max-width: 250px;
+  font-size: 14px;
+  transform: translateY(-50%);
+  pointer-events: auto;
+}
+
+.tooltip-title {
+  font-weight: bold;
+  color: #1565c0;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.tooltip-description {
+  color: #333;
+  line-height: 1.4;
+}
+
+.tooltip-arrow {
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #2196f3;
+}
+
+.tooltip-arrow::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: -6px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 6px solid white;
+}
+
+/* Node cursor styling */
+:deep(.node-with-description) {
+  cursor: pointer !important;
+}
+
+:deep(.vue-flow__node.node-with-description .vue-flow__node-default) {
+  cursor: pointer !important;
 }
 </style>

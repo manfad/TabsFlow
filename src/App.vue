@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import Notepad from './components/Notepad.vue';
 import JsonPad from './components/JsonPad.vue';
-import Mappad from './components/Mappad.vue';
+import Mappad from './components/MapPad.vue';
 
 // Shared state for notepad lines
 const notepadLines = ref([''])
