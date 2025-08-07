@@ -10,6 +10,9 @@ const notepadLines = ref([''])
 // Tab state
 const activeTab = ref<'notepad' | 'jsonstore'>('notepad')
 
+// Component references
+const jsonPadRef = ref<InstanceType<typeof JsonPad> | null>(null)
+
 // Computed property for JSON content
 const jsonContent = computed(() => {
   const parseLines = notepadLines.value.map((line, index) => {
@@ -103,13 +106,10 @@ const saveJsonToFile = () => {
 }
 
 const fixJsonFormat = () => {
-  try {
-    const parsed = JSON.parse(jsonContent.value)
-    // Re-generate the JSON content to fix any formatting issues
-    const formatted = JSON.stringify(parsed, null, 2)
-    console.log('JSON format fixed:', formatted.length, 'characters')
-  } catch (error) {
-    console.error('Could not fix JSON format:', error)
+  if (jsonPadRef.value && activeTab.value === 'jsonstore') {
+    jsonPadRef.value.fixJsonFormat()
+  } else {
+    console.warn('JsonPad component not available or not active')
   }
 }
 </script>
@@ -187,7 +187,7 @@ const fixJsonFormat = () => {
             <Notepad v-model:lines="notepadLines" />
           </div>
           <div v-if="activeTab === 'jsonstore'" class="panel-content">
-            <JsonPad v-model:lines="notepadLines" />
+            <JsonPad ref="jsonPadRef" v-model:lines="notepadLines" />
           </div>
         </div>
       </div>

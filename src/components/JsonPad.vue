@@ -132,27 +132,46 @@ const buildHierarchy = computed(() => {
   return result
 })
 
-// Convert JSON back to indented text
+// Convert JSON back to indented text with better structure handling
 const convertJsonToLines = (jsonObj: any, level: number = 0): string[] => {
   const lines: string[] = []
   
   for (const [key, value] of Object.entries(jsonObj)) {
-    // Add the key with proper indentation
+    // Clean the key (remove any _1, _2 suffixes added for uniqueness)
+    const cleanKey = key.replace(/_\d+$/, '')
     const indent = '\t'.repeat(level)
-    lines.push(`${indent}${key}`)
     
     if (Array.isArray(value)) {
-      // Handle arrays - add each item as a child
+      // Handle arrays - add the key first, then items as children
+      lines.push(`${indent}${cleanKey}`)
       value.forEach((item) => {
         const childIndent = '\t'.repeat(level + 1)
-        lines.push(`${childIndent}${item}`)
+        if (typeof item === 'string') {
+          lines.push(`${childIndent}${item}`)
+        } else {
+          lines.push(`${childIndent}${String(item)}`)
+        }
       })
     } else if (typeof value === 'object' && value !== null) {
-      // Handle nested objects - recurse
-      const childLines = convertJsonToLines(value, level + 1)
-      lines.push(...childLines)
+      // Handle nested objects
+      const hasChildren = Object.keys(value).length > 0
+      if (hasChildren) {
+        // Add the key first, then recurse for children
+        lines.push(`${indent}${cleanKey}`)
+        const childLines = convertJsonToLines(value, level + 1)
+        lines.push(...childLines)
+      } else {
+        // Empty object - just add the key
+        lines.push(`${indent}${cleanKey}`)
+      }
+    } else {
+      // Primitive values - add as key: value format for better readability
+      if (value !== undefined && value !== null && value !== '') {
+        lines.push(`${indent}${cleanKey}: ${value}`)
+      } else {
+        lines.push(`${indent}${cleanKey}`)
+      }
     }
-    // If value is primitive (string, number, boolean), it's already handled as empty object
   }
   
   return lines
@@ -194,10 +213,62 @@ const handleJsonChange = (value: string) => {
 }
 
 // Fix JSON format by wrapping in braces and removing trailing commas
+const fixJsonFormat = () => {
+  let content = jsonContent.value.trim()
+  
+  // Remove trailing comma if exists
+  if (content.endsWith(',')) {
+    content = content.slice(0, -1)
+  }
+  
+  // Check if content needs wrapping in braces
+  if (!content.startsWith('{') || !content.endsWith('}')) {
+    // If it starts with a property name (like "responses":), wrap it
+    if (content.includes(':') && !content.startsWith('[')) {
+      content = `{\n  ${content}\n}`
+    }
+    // If it's an array-like structure, wrap in array
+    else if (content.startsWith('"') && content.includes(',')) {
+      content = `[\n  ${content}\n]`
+    }
+    // Default to object wrapping
+    else if (!content.startsWith('{') && !content.startsWith('[')) {
+      content = `{\n  ${content}\n}`
+    }
+  }
+  
+  // Try to format the JSON properly
+  try {
+    const parsed = JSON.parse(content)
+    const formatted = JSON.stringify(parsed, null, 2)
+    jsonContent.value = formatted
+    
+    // Trigger immediate conversion with slight delay to ensure proper propagation
+    const newLines = convertJsonToLines(parsed)
+    emit('update:lines', newLines)
+    
+    // Force a second update after a short delay to ensure MapPad receives the data
+    setTimeout(() => {
+      const finalLines = convertJsonToLines(parsed)
+      emit('update:lines', finalLines)
+    }, 100)
+    
+  } catch (error) {
+    // If still invalid, just update the content with basic fixes
+    jsonContent.value = content
+    console.warn('Could not parse JSON even after fixes:', error)
+  }
+}
+
 // Initialize when lines change
 const initializeContent = () => {
   initializeJsonContent()
 }
+
+// Expose the fix function to parent
+defineExpose({
+  fixJsonFormat
+})
 
 // Watch for changes in props.lines to update JSON content
 import { watch } from 'vue'
