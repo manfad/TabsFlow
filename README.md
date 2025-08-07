@@ -9,9 +9,6 @@
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-FFC131?style=flat-square&logo=tauri&logoColor=black)](https://tauri.app/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 
-• [Features](#features) • [Installation](#installation) • [Usage](#usage) • [Development](#development) • [Contributing](#contributing)
-
-</div>
 
 ## ✨ Features
 
@@ -25,6 +22,19 @@
 
 ## 🚀 Quick Start
 
+
+
+## 📖 How to use
+
+### Tutorial
+- So you use tab for intend and enter for new line
+- Each level deeper (more indentation) becomes a child of the previous line.
+- The first line will be the root node.
+- You can add ":" colon after text to create description .For example Apple : red then u can click on the apple to see the note
+- You can use JSON lines in JSON Editor but it is still WIP for complex JSON like object type ("userid":number might failed , the number will become description  )
+
+
+![Demo](./demo.png)
 ### Prerequisites
 
 - **Node.js** (v18 or higher)
@@ -53,19 +63,6 @@
    ```bash
    pnpm tauri build
    ```
-
-## 📖 How to use
-
-### Tutorial
-- So you use tab for intend and enter for new line
-- Each level deeper (more indentation) becomes a child of the previous line.
-- The first line will be the root node.
-- You can add ":" colon after text to create description .For example Apple : red then u can click on the apple to see the note
-- You can use JSON lines in JSON Editor but it is still WIP for complex JSON like object type ("userid":number might failed , the number will become description  )
-
-
-![Demo](./demo.png)
-
 
 ## 🛠️ Tech Stack
 
