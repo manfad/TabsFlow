@@ -1,9 +1,6 @@
-# TabFlow
+# TabsFlow
 
-<div align="center">
-
-
-# [Demo ](https://tabsflow.vercel.app/) 
+# [Demo Link](https://tabsflow.vercel.app/) 
 
 **Create your Node Diagram with Tabs and Enter or JSON**
 
