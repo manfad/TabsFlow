@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue'
-import { VueFlow, useVueFlow, Panel } from '@vue-flow/core'
+import { VueFlow, useVueFlow } from '@vue-flow/core'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 
@@ -121,7 +121,7 @@ const flowData = computed(() => {
         source: levelParents[level - 1],
         target: nodeId,
         // CHANGED: Remove sourceHandle and targetHandle to let Vue Flow use the position settings
-        type: 'smoothstep',
+        type: 'step',
         style: {
           stroke: getEdgeColor(level),
           strokeWidth: 2
@@ -169,9 +169,6 @@ const getEdgeColor = (level: number) => {
   return getNodeBorderColor(level - 1)
 }
 
-// Layout options
-const layoutType = ref<'tree' | 'compact' | 'radial' | 'linear'>('linear')
-
 // Vue Flow setup
 const { fitView, setNodes } = useVueFlow()
 
@@ -197,50 +194,31 @@ const hideTooltip = () => {
   tooltip.value.show = false
 }
 
-// Tree layout algorithm
-const applyTreeLayout = () => {
+//Layout algorithm
+const applyLayout = () => {
   const lines = parseLines.value
   if (lines.length === 0) return
   
   const nodePositions: { [id: string]: { x: number; y: number } } = {}
-  const levelCounts: { [level: number]: number } = {}
   const levelPositions: { [level: number]: number } = {}
   
-  // Count nodes per level
+  // Initialize level positions
   lines.forEach(line => {
-    levelCounts[line.level] = (levelCounts[line.level] || 0) + 1
+    if (!levelPositions[line.level]) levelPositions[line.level] = 0
   })
   
-  // Calculate positions
+  // Calculate positions with proper vertical stacking
   lines.forEach((line, index) => {
     const nodeId = `node-${index}`
     const { level } = line
     
-    if (!levelPositions[level]) levelPositions[level] = 0
-    
     let x: number, y: number
     
-    if (layoutType.value === 'tree') {
-      // Tree layout: levels go horizontally, spread vertically
-      x = level * 250 + 100
-      const levelIndex = levelPositions[level]
-      const totalAtLevel = levelCounts[level]
-      y = (levelIndex - totalAtLevel / 2) * 120 + 300
-    } else if (layoutType.value === 'compact') {
-      // Compact layout: tighter spacing
-      x = level * 180 + 80
-      y = levelPositions[level] * 80 + 50
-    } else if (layoutType.value === 'radial') {
-      // Radial layout: circular arrangement
-      const radius = level * 150 + 100
-      const angle = (levelPositions[level] / Math.max(levelCounts[level], 1)) * 2 * Math.PI
-      x = Math.cos(angle) * radius + 400
-      y = Math.sin(angle) * radius + 300
-    } else {
-      // Linear layout: original simple layout
-      x = level * 200 + 50
-      y = index * 80 + 50
-    }
+    // Horizontal position based on level
+    x = level * 250 + 50
+    
+    // Vertical position: stack nodes by giving each one space within their level
+    y = levelPositions[level] * 90 + 50
     
     nodePositions[nodeId] = { x, y }
     levelPositions[level]++
@@ -262,18 +240,37 @@ const applyTreeLayout = () => {
 // Auto-fit view when data changes
 const onLoad = () => {
   setTimeout(() => {
-    applyTreeLayout()
+    applyLayout()
   }, 100)
 }
 
-// Watch for changes in lines and automatically apply layout
-watch(() => props.lines, () => {
-  setTimeout(() => {
-    applyTreeLayout()
+// Watch for changes in lines and automatically apply layout with debouncing
+let layoutTimer: number | null = null
+const previousLinesHash = ref('')
+
+watch(() => props.lines, (newLines) => {
+  // Create a hash of the meaningful content to avoid unnecessary updates
+  const currentHash = newLines.map(line => line.trim()).filter(line => line !== '').join('|')
+  
+  // Only update if the content actually changed
+  if (currentHash === previousLinesHash.value) {
+    return
+  }
+  
+  previousLinesHash.value = currentHash
+  
+  // Clear existing timer
+  if (layoutTimer) {
+    clearTimeout(layoutTimer)
+  }
+  
+  // Debounce the layout update
+  layoutTimer = setTimeout(() => {
+    applyLayout()
     setTimeout(() => {
       fitView({ padding: 0.2 })
-    }, 150)
-  }, 100)
+    }, 100)
+  }, 300) // Increased delay to reduce interruptions
 }, { deep: true })
 
 </script>

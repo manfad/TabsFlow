@@ -18,11 +18,21 @@ interface ParsedLine {
 
 // Editor state
 const jsonContent = ref('')
+const isUserEditing = ref(false)
+let editingTimer: number | null = null
 
 // Initialize JSON content when component mounts or lines change
 const initializeJsonContent = () => {
+  // Don't update if user is actively editing
+  if (isUserEditing.value) return
+  
   const hierarchy = buildHierarchy.value
-  jsonContent.value = JSON.stringify(hierarchy, null, 2)
+  const newJsonContent = JSON.stringify(hierarchy, null, 2)
+  
+  // Only update if content actually changed to prevent cursor jumps
+  if (jsonContent.value !== newJsonContent) {
+    jsonContent.value = newJsonContent
+  }
 }
 
 // Parse lines to build hierarchy (existing logic)
@@ -132,7 +142,7 @@ const convertJsonToLines = (jsonObj: any, level: number = 0): string[] => {
     
     if (Array.isArray(value)) {
       // Handle arrays - add each item as a child
-      value.forEach((item, index) => {
+      value.forEach((item) => {
         const childIndent = '\t'.repeat(level + 1)
         lines.push(`${childIndent}${item}`)
       })
@@ -153,10 +163,21 @@ let debounceTimer: number | null = null
 const handleJsonChange = (value: string) => {
   jsonContent.value = value
   
-  // Clear existing timer
+  // Mark user as actively editing
+  isUserEditing.value = true
+  
+  // Clear existing timers
   if (debounceTimer) {
     clearTimeout(debounceTimer)
   }
+  if (editingTimer) {
+    clearTimeout(editingTimer)
+  }
+  
+  // Reset editing state after user stops typing
+  editingTimer = setTimeout(() => {
+    isUserEditing.value = false
+  }, 2000) // 2 seconds after last keystroke
   
   // Debounce the conversion to avoid too frequent updates
   debounceTimer = setTimeout(() => {
@@ -212,10 +233,6 @@ const fixJsonFormat = () => {
   }
 }
 
-// Initialize JSON content when component mounts
-const formattedJson = computed(() => {
-  return jsonContent.value
-})
 
 // Initialize when lines change
 const initializeContent = () => {
@@ -257,13 +274,6 @@ const editorOptions = {
 
 <template>
     <div class="json-container">
-     <div class="header">
-       <h3>JSON Structure</h3>
-       <button @click="fixJsonFormat" class="fix-button" title="Fix JSON format, wrap in braces, remove trailing commas">
-         🔧 Fix Format
-       </button>
-     </div>
-     
      <div class="monaco-container">
        <VueMonacoEditor
          v-model:value="jsonContent"
@@ -272,6 +282,10 @@ const editorOptions = {
          style="height: 100%; width: 100%;"
        />
      </div>
+     
+     <button @click="fixJsonFormat" class="fix-button" title="Fix JSON format, wrap in braces, remove trailing commas">
+       🔧  Fix Format
+     </button>
    </div>
 </template>
 
@@ -280,43 +294,30 @@ const editorOptions = {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #f0f8ff;
+  position: relative;
   border-radius: 8px;
   overflow: hidden;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background-color: #e3f2fd;
-  border-bottom: 1px solid #bbdefb;
-}
-
-.header h3 {
-  margin: 0;
-  color: #1565c0;
-  font-size: 16px;
-}
-
 .fix-button {
+
   padding: 6px 12px;
   border: none;
-  border-radius: 4px;
-  font-size: 12px;
+  border-radius: 6px;
+  font-size: 11px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
-  background: #ff9800;
+  background: #007bff;
   color: white;
   font-weight: 500;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.25);
 }
 
 .fix-button:hover {
-  background: #f57c00;
+  background: #007bff;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.35);
 }
 
 .monaco-container {
