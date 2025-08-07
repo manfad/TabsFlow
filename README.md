@@ -27,7 +27,7 @@
 ## 📖 How to use
 
 ### Tutorial
-- So you use tab for intend and enter for new line
+- So you use tab for intend and enter for new line, then the right pad will direct show the relationship diagram
 - Each level deeper (more indentation) becomes a child of the previous line.
 - The first line will be the root node.
 - You can add ":" colon after text to create description .For example Apple : red then u can click on the apple to see the note
