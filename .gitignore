@@ -136,6 +136,9 @@ Desktop.ini
 *.swo
 *~
 
+# Cursor
+.cursor/
+
 # Temporary files
 *.tmp
 *.temp

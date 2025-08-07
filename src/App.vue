@@ -38,7 +38,7 @@ const activeTab = ref<'notepad' | 'jsonstore'>('notepad')
           <Notepad v-model:lines="notepadLines" style="flex: 1; min-height: 0; min-width: 0;" />
         </div>
         <div v-if="activeTab === 'jsonstore'" style="height: 100%; display: flex; flex-direction: column;">
-          <JsonPad :lines="notepadLines" style="flex: 1; min-height: 0; min-width: 0;" />
+          <JsonPad v-model:lines="notepadLines" style="flex: 1; min-height: 0; min-width: 0;" />
         </div>
       </div>
     </div>

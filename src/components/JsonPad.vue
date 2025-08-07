@@ -1,8 +1,13 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { VueMonacoEditor } from '@guolao/vue-monaco-editor'
 
 const props = defineProps<{
   lines: string[]
+}>()
+
+const emit = defineEmits<{
+  'update:lines': [lines: string[]]
 }>()
 
 interface ParsedLine {
@@ -11,6 +16,16 @@ interface ParsedLine {
   originalIndex: number
 }
 
+// Editor state
+const jsonContent = ref('')
+
+// Initialize JSON content when component mounts or lines change
+const initializeJsonContent = () => {
+  const hierarchy = buildHierarchy.value
+  jsonContent.value = JSON.stringify(hierarchy, null, 2)
+}
+
+// Parse lines to build hierarchy (existing logic)
 const parseLines = computed((): ParsedLine[] => {
   return props.lines.map((line, index) => {
     let level = 0
@@ -106,74 +121,222 @@ const buildHierarchy = computed(() => {
   return result
 })
 
+// Convert JSON back to indented text
+const convertJsonToLines = (jsonObj: any, level: number = 0): string[] => {
+  const lines: string[] = []
+  
+  for (const [key, value] of Object.entries(jsonObj)) {
+    // Add the key with proper indentation
+    const indent = '\t'.repeat(level)
+    lines.push(`${indent}${key}`)
+    
+    if (Array.isArray(value)) {
+      // Handle arrays - add each item as a child
+      value.forEach((item, index) => {
+        const childIndent = '\t'.repeat(level + 1)
+        lines.push(`${childIndent}${item}`)
+      })
+    } else if (typeof value === 'object' && value !== null) {
+      // Handle nested objects - recurse
+      const childLines = convertJsonToLines(value, level + 1)
+      lines.push(...childLines)
+    }
+    // If value is primitive (string, number, boolean), it's already handled as empty object
+  }
+  
+  return lines
+}
+
+// Handle JSON editing and conversion with debouncing
+let debounceTimer: number | null = null
+
+const handleJsonChange = (value: string) => {
+  jsonContent.value = value
+  
+  // Clear existing timer
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+  }
+  
+  // Debounce the conversion to avoid too frequent updates
+  debounceTimer = setTimeout(() => {
+    try {
+      const parsedJson = JSON.parse(value)
+      const newLines = convertJsonToLines(parsedJson)
+      emit('update:lines', newLines)
+    } catch (error) {
+      // Silently ignore invalid JSON while typing
+      // console.error('Invalid JSON:', error)
+    }
+  }, 500) // 500ms delay
+}
+
+// Fix JSON format by wrapping in braces and removing trailing commas
+const fixJsonFormat = () => {
+  let content = jsonContent.value.trim()
+  
+  // Remove trailing comma if exists
+  if (content.endsWith(',')) {
+    content = content.slice(0, -1)
+  }
+  
+  // Check if content needs wrapping in braces
+  if (!content.startsWith('{') || !content.endsWith('}')) {
+    // If it starts with a property name (like "responses":), wrap it
+    if (content.includes(':') && !content.startsWith('[')) {
+      content = `{\n  ${content}\n}`
+    }
+    // If it's an array-like structure, wrap in array
+    else if (content.startsWith('"') && content.includes(',')) {
+      content = `[\n  ${content}\n]`
+    }
+    // Default to object wrapping
+    else if (!content.startsWith('{') && !content.startsWith('[')) {
+      content = `{\n  ${content}\n}`
+    }
+  }
+  
+  // Try to format the JSON properly
+  try {
+    const parsed = JSON.parse(content)
+    const formatted = JSON.stringify(parsed, null, 2)
+    jsonContent.value = formatted
+    
+    // Trigger immediate conversion
+    const newLines = convertJsonToLines(parsed)
+    emit('update:lines', newLines)
+  } catch (error) {
+    // If still invalid, just update the content with basic fixes
+    jsonContent.value = content
+    console.warn('Could not parse JSON even after fixes:', error)
+  }
+}
+
+// Initialize JSON content when component mounts
 const formattedJson = computed(() => {
-  return JSON.stringify(buildHierarchy.value, null, 2)
+  return jsonContent.value
 })
+
+// Initialize when lines change
+const initializeContent = () => {
+  initializeJsonContent()
+}
+
+// Watch for changes in props.lines to update JSON content
+import { watch } from 'vue'
+watch(() => props.lines, initializeContent, { immediate: true })
+
+// Monaco editor options
+const editorOptions = {
+  theme: 'vs',
+  language: 'json',
+  fontSize: 14,
+  fontFamily: 'Courier New, monospace',
+  lineNumbers: 'on' as const,
+  minimap: { enabled: false },
+  scrollBeyondLastLine: false,
+  wordWrap: 'off' as const,
+  automaticLayout: true,
+  tabSize: 4,
+  insertSpaces: false,
+  detectIndentation: false,
+  renderWhitespace: 'selection' as const,
+  renderControlCharacters: false,
+  folding: false,
+  rulers: [],
+  overviewRulerBorder: false,
+  hideCursorInOverviewRuler: true,
+  scrollbar: {
+    vertical: 'auto' as const,
+    horizontal: 'auto' as const,
+    verticalScrollbarSize: 10,
+    horizontalScrollbarSize: 10
+  }
+}
 </script>
 
 <template>
-  <div class="json-pad">
-    <div class="json-display">
-      <pre class="json-content">{{ formattedJson }}</pre>
-    </div>
-  </div>
+    <div class="json-container">
+     <div class="header">
+       <h3>JSON Structure</h3>
+       <button @click="fixJsonFormat" class="fix-button" title="Fix JSON format, wrap in braces, remove trailing commas">
+         🔧 Fix Format
+       </button>
+     </div>
+     
+     <div class="monaco-container">
+       <VueMonacoEditor
+         v-model:value="jsonContent"
+         :options="editorOptions"
+         @change="handleJsonChange"
+         style="height: 100%; width: 100%;"
+       />
+     </div>
+   </div>
 </template>
 
 <style scoped>
-.json-pad {
-  font-family: 'Courier New', monospace;
-  padding: 16px;
-  background-color: #f0f8ff;
-  border-radius: 8px;
+.json-container {
   height: 100%;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  background-color: #f0f8ff;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #b3d9ff;
+  padding: 12px 16px;
+  background-color: #e3f2fd;
+  border-bottom: 1px solid #bbdefb;
 }
 
 .header h3 {
   margin: 0;
-  color: #2c5aa0;
+  color: #1565c0;
+  font-size: 16px;
 }
 
-.stats {
-  font-size: 12px;
-  color: #5a7db8;
-}
-
-.stats span {
-  margin-left: 12px;
-  padding: 2px 6px;
-  background-color: #e6f2ff;
+.fix-button {
+  padding: 6px 12px;
+  border: none;
   border-radius: 4px;
-}
-
-.json-display {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.json-content {
-  background-color: #ffffff;
-  border: 1px solid #b3d9ff;
-  border-radius: 4px;
-  padding: 12px;
   font-size: 12px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  color: #2c5aa0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  background: #ff9800;
+  color: white;
+  font-weight: 500;
+}
+
+.fix-button:hover {
+  background: #f57c00;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.monaco-container {
   flex: 1;
   min-height: 0;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  border-top: none;
+}
+
+:deep(.monaco-editor) {
+  font-family: 'Courier New', monospace !important;
+}
+
+:deep(.monaco-editor .margin) {
+  background-color: #f8f9fa !important;
+}
+
+:deep(.monaco-editor .monaco-editor-background) {
+  background-color: #ffffff !important;
 }
 </style>
