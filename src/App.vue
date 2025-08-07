@@ -116,11 +116,23 @@ const fixJsonFormat = () => {
 
 <template>
   <div class="app-wrapper">
-    <!-- App Title -->
-    <div class="app-title">
-      <h1>Tabs Flow</h1>
+    <!-- App Header with Logo and GitHub Button -->
+    <div class="app-header">
+      <div class="header-left">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="m12.88 7.017l4.774 1.271m-5.796 2.525l2.386.636m-2.267 6.517l.954.255c2.7.72 4.05 1.079 5.114.468c1.063-.61 1.425-1.953 2.148-4.637l1.023-3.797c.724-2.685 1.085-4.027.471-5.085s-1.963-1.417-4.664-2.136l-.954-.255c-2.7-.72-4.05-1.079-5.113-.468c-1.064.61-1.426 1.953-2.15 4.637l-1.022 3.797c-.724 2.685-1.086 4.027-.471 5.085c.614 1.057 1.964 1.417 4.664 2.136"/><path d="m12 20.946l-.952.26c-2.694.733-4.04 1.1-5.102.477c-1.06-.622-1.422-1.99-2.143-4.728l-1.021-3.872c-.722-2.737-1.083-4.106-.47-5.184C2.842 6.966 4 7 5.5 7"/></g></svg>
+          </div>
+          <h1 class="app-title">TabFlow</h1>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <a href="https://github.com/manfad/TabsFlow" target="_blank" rel="noopener noreferrer" class="github-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.517 17.113c.395.578 1.592 1.81 3.225 2.12M9.864 22C8.836 21.83 2 19.606 2 12.093C2 5.063 8.002 2 12 2c4 0 10 3.063 10 10.093c0 7.513-6.836 9.738-7.864 9.907c0 0-.21-3.417-.087-4.003c.122-.586-.294-1.528-.294-1.528c.971-.364 2.45-.884 2.945-2.282c.385-1.084.627-2.658-.45-4.138c0 0 .282-2.39-.25-2.484c-.533-.092-2.1.947-2.1.947c-.457-.13-1.476-.377-1.898-.333c-.423-.044-1.445.203-1.902.333c0 0-1.568-1.04-2.1-.947s-.25 2.484-.25 2.484c-1.077 1.48-.835 3.054-.45 4.138c.496 1.398 1.974 1.918 2.945 2.282c0 0-.416.942-.294 1.528S9.864 22 9.864 22"/></svg>
+        </a>
+      </div>
     </div>
-    
 
     <div class="app-container">
     <!-- Left Panel -->
@@ -231,20 +243,66 @@ body {
   background: #f8fafc;
 }
 
-.app-title {
-  text-align: center;
-  padding: 20px 24px 0 24px;
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
   background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.app-title h1 {
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+  border-radius: 8px;
+}
+
+.app-title {
   margin: 0;
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: #1e293b;
   letter-spacing: -0.025em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color:black;
+}
+
+.github-button {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color:black;
+}
+.github-button svg:hover {
+  color: white;
+  background-color: black;
+  border-radius: 6px;
+  padding: 4px;
+}
+
+
 
 /* Unified Toolbar */
 .unified-toolbar {

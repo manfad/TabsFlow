@@ -327,7 +327,6 @@ const editorOptions = {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid #e0e0e0;
 }
 
 :deep(.monaco-editor) {
