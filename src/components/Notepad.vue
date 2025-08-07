@@ -52,26 +52,34 @@ const editorOptions = {
 const handleChange = (value: string) => {
   content.value = value
 }
+
+
 </script>
 
 <template>
-  <div class="monaco-container">
-    <VueMonacoEditor
-      v-model:value="content"
-      :options="editorOptions"
-      @change="handleChange"
-      style="height: 100%; width: 100%;"
-    />
+  <div class="editor-container">
+    <div class="monaco-container">
+      <VueMonacoEditor
+        v-model:value="content"
+        :options="editorOptions"
+        @change="handleChange"
+        style="height: 100%; width: 100%;"
+      />
+    </div>
   </div>
 </template>
 
 <style scoped>
-.monaco-container {
+.editor-container {
   height: 100%;
-  width: 100%;
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.monaco-container {
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
-  border: 1px solid #e0e0e0;
 }
 
 :deep(.monaco-editor) {

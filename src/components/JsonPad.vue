@@ -8,6 +8,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:lines': [lines: string[]]
+  'fix-json': []
 }>()
 
 interface ParsedLine {
@@ -193,47 +194,6 @@ const handleJsonChange = (value: string) => {
 }
 
 // Fix JSON format by wrapping in braces and removing trailing commas
-const fixJsonFormat = () => {
-  let content = jsonContent.value.trim()
-  
-  // Remove trailing comma if exists
-  if (content.endsWith(',')) {
-    content = content.slice(0, -1)
-  }
-  
-  // Check if content needs wrapping in braces
-  if (!content.startsWith('{') || !content.endsWith('}')) {
-    // If it starts with a property name (like "responses":), wrap it
-    if (content.includes(':') && !content.startsWith('[')) {
-      content = `{\n  ${content}\n}`
-    }
-    // If it's an array-like structure, wrap in array
-    else if (content.startsWith('"') && content.includes(',')) {
-      content = `[\n  ${content}\n]`
-    }
-    // Default to object wrapping
-    else if (!content.startsWith('{') && !content.startsWith('[')) {
-      content = `{\n  ${content}\n}`
-    }
-  }
-  
-  // Try to format the JSON properly
-  try {
-    const parsed = JSON.parse(content)
-    const formatted = JSON.stringify(parsed, null, 2)
-    jsonContent.value = formatted
-    
-    // Trigger immediate conversion
-    const newLines = convertJsonToLines(parsed)
-    emit('update:lines', newLines)
-  } catch (error) {
-    // If still invalid, just update the content with basic fixes
-    jsonContent.value = content
-    console.warn('Could not parse JSON even after fixes:', error)
-  }
-}
-
-
 // Initialize when lines change
 const initializeContent = () => {
   initializeJsonContent()
@@ -273,60 +233,30 @@ const editorOptions = {
 </script>
 
 <template>
-    <div class="json-container">
-     <div class="monaco-container">
-       <VueMonacoEditor
-         v-model:value="jsonContent"
-         :options="editorOptions"
-         @change="handleJsonChange"
-         style="height: 100%; width: 100%;"
-       />
-     </div>
-     
-     <button @click="fixJsonFormat" class="fix-button" title="Fix JSON format, wrap in braces, remove trailing commas">
-       🔧  Fix Format
-     </button>
-   </div>
+    <div class="editor-container">
+    <div class="monaco-container">
+      <VueMonacoEditor
+        v-model:value="jsonContent"
+        :options="editorOptions"
+        @change="handleJsonChange"
+        style="height: 100%; width: 100%;"
+      />
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.json-container {
+.editor-container {
   height: 100%;
   display: flex;
   flex-direction: column;
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.fix-button {
-
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  background: #007bff;
-  color: white;
-  font-weight: 500;
-  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.25);
-}
-
-.fix-button:hover {
-  background: #007bff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.35);
 }
 
 .monaco-container {
   flex: 1;
   min-height: 0;
-  border-radius: 0 0 8px 8px;
   overflow: hidden;
   border: 1px solid #e0e0e0;
-  border-top: none;
 }
 
 :deep(.monaco-editor) {

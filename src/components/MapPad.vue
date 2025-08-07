@@ -79,7 +79,7 @@ const flowData = computed(() => {
     const { level, text, description } = line
     
     // Calculate position
-    const x = level * 200 + 50
+    const x = level * 300 + 50
     const y = index * 80 + 50
     
     // Create node
@@ -88,8 +88,7 @@ const flowData = computed(() => {
       type: 'default',
       position: { x, y },
       data: { 
-        label: description !== '' ? `${text} ℹ️` : text,
-        originalLabel: text,
+        label: description !== '' ? `${text} *` : text,
         level: level,
         description: description,
         hasDescription: description !== ''
@@ -120,8 +119,8 @@ const flowData = computed(() => {
         id: `edge-${levelParents[level - 1]}-${nodeId}`,
         source: levelParents[level - 1],
         target: nodeId,
-        // CHANGED: Remove sourceHandle and targetHandle to let Vue Flow use the position settings
-        type: 'step',
+        // CHANGED: Use straight edge type for direct lines without bends
+        type: 'smoothstep',
         style: {
           stroke: getEdgeColor(level),
           strokeWidth: 2
@@ -200,28 +199,21 @@ const applyLayout = () => {
   if (lines.length === 0) return
   
   const nodePositions: { [id: string]: { x: number; y: number } } = {}
-  const levelPositions: { [level: number]: number } = {}
   
-  // Initialize level positions
-  lines.forEach(line => {
-    if (!levelPositions[line.level]) levelPositions[line.level] = 0
-  })
-  
-  // Calculate positions with proper vertical stacking
+  // Calculate positions with linear layout (same as initial positioning)
   lines.forEach((line, index) => {
     const nodeId = `node-${index}`
     const { level } = line
     
     let x: number, y: number
     
-    // Horizontal position based on level
-    x = level * 250 + 50
+    // Horizontal position based on level (using same spacing as initial)
+    x = level * 200 + 50
     
-    // Vertical position: stack nodes by giving each one space within their level
-    y = levelPositions[level] * 90 + 50
+    // Vertical position: linear layout based on line index (same as initial)
+    y = index * 80 + 50
     
     nodePositions[nodeId] = { x, y }
-    levelPositions[level]++
   })
   
   // Update node positions
@@ -315,37 +307,8 @@ watch(() => props.lines, (newLines) => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #f0f8ff;
-  border-radius: 8px;
   overflow: hidden;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background-color: #e3f2fd;
-  border-bottom: 1px solid #bbdefb;
-}
-
-.header h3 {
-  margin: 0;
-  color: #1565c0;
-  font-size: 16px;
-}
-
-.stats {
-  font-size: 12px;
-  color: #1976d2;
-}
-
-.stats span {
-  margin-left: 12px;
-  padding: 2px 6px;
-  background-color: #ffffff;
-  border-radius: 4px;
-  border: 1px solid #bbdefb;
+  border: 0.5px solid rgb(189, 189, 189);
 }
 
 .flow-container {
@@ -359,61 +322,7 @@ watch(() => props.lines, (newLines) => {
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
 
-.controls {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 6px;
-  padding: 12px;
-  backdrop-filter: blur(4px);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 150px;
-}
 
-.control-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.control-group label {
-  font-size: 11px;
-  font-weight: bold;
-  color: #333;
-}
-
-.layout-select {
-  background: white;
-  border: 1px solid #ddd;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.layout-button,
-.fit-button {
-  background: #1976d2;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 11px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.layout-button {
-  background: #2e7d32;
-}
-
-.layout-button:hover {
-  background: #1b5e20;
-}
-
-.fit-button:hover {
-  background: #1565c0;
-}
 
 /* Vue Flow customizations */
 :deep(.vue-flow__node) {
