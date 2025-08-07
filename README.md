@@ -20,7 +20,7 @@
 - **🔍 Syntax Highlighting**: Monaco Editor integration for JSON editing
 - **📊 Real-time Visualization**: Vue Flow diagrams that update as you type
 
-## 🚀 Quick Start
+
 
 
 
@@ -35,6 +35,8 @@
 
 
 ![Demo](./demo.png)
+
+## 🚀 Local Deployment
 ### Prerequisites
 
 - **Node.js** (v18 or higher)
