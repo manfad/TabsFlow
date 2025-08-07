@@ -77,14 +77,6 @@
 - **[@vue-flow/core](https://github.com/bcakmakoglu/vue-flow)** - Interactive flow diagrams
 - **[@tauri-apps/api](https://tauri.app/v2/api/)** - Tauri desktop APIs
 
-
-### Development Guidelines
-
-- Use Vue 3 Composition API with `<script setup>` syntax
-- Follow TypeScript best practices for type safety
-- Implement proper component communication with props and emits
-- Use reactive state management with `ref()` and `computed()`
-
 ## 🤝 Support
 
 Welcome contributions from the community for any bugs or request!
