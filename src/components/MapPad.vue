@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { VueFlow, useVueFlow, Panel } from '@vue-flow/core'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
@@ -170,7 +170,7 @@ const getEdgeColor = (level: number) => {
 }
 
 // Layout options
-const layoutType = ref<'tree' | 'compact' | 'radial' | 'linear'>('tree')
+const layoutType = ref<'tree' | 'compact' | 'radial' | 'linear'>('linear')
 
 // Vue Flow setup
 const { fitView, setNodes } = useVueFlow()
@@ -266,6 +266,16 @@ const onLoad = () => {
   }, 100)
 }
 
+// Watch for changes in lines and automatically apply layout
+watch(() => props.lines, () => {
+  setTimeout(() => {
+    applyTreeLayout()
+    setTimeout(() => {
+      fitView({ padding: 0.2 })
+    }, 150)
+  }, 100)
+}, { deep: true })
+
 </script>
 
 <template>
@@ -282,23 +292,6 @@ const onLoad = () => {
         :max-zoom="4"
         fit-view-on-init
       >
-        <Panel position="top-right" class="controls">
-          <div class="control-group">
-            <label>Layout:</label>
-            <select v-model="layoutType" @change="applyTreeLayout" class="layout-select">
-              <option value="tree">Tree</option>
-              <option value="compact">Compact</option>
-              <option value="radial">Radial</option>
-              <option value="linear">Linear</option>
-            </select>
-          </div>
-          <button @click="applyTreeLayout" class="layout-button">
-            Auto Layout
-          </button>
-          <button @click="fitView({ padding: 0.2 })" class="fit-button">
-            Fit View
-          </button>
-        </Panel>
       </VueFlow>
     </div>
     
