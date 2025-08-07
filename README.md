@@ -61,7 +61,7 @@
 
 ### Demo
 
-
+![Demo](./demo.png)
 
 
 ## 🛠️ Tech Stack
