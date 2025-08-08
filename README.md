@@ -1,6 +1,6 @@
 # TabsFlow
 
-# [Demo Link](https://tabsflow.vercel.app/) 
+# [Online Demo](https://tabsflow.vercel.app/) 
 
 **Create your Node Diagram with Tabs and Enter or JSON**
 
@@ -30,13 +30,12 @@
 - So you use tab for intend and enter for new line, then the right pad will direct show the relationship diagram
 - Each level deeper (more indentation) becomes a child of the previous line.
 - The first line will be the root node.
-- You can add ":" colon after text to create description .For example Apple : red then u can click on the apple to see the note
-- You can use JSON lines in JSON Editor but it is still WIP for complex JSON like object type ("userid":number might failed , the number will become description  )
-
+- You can add "--" doubledash after text to create description .For example Apple -- red then u can click on the Apple node to see the description
+- You can use JSON lines in JSON Editor, it will automatically detect the simple object and convert to indented format
 
 ![Demo](./demo.png)
 
-## 🚀 Local Deployment
+## 🚀 Local Deployment (Desktop App)
 ### Prerequisites
 
 - **Node.js** (v18 or higher)

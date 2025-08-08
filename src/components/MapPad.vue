@@ -43,15 +43,15 @@ const parseLines = computed((): ParsedLine[] => {
       }
     }
     
-    // Split text and description on first colon
+    // Split text and description on double dash
     const trimmedText = text.trim()
-    const colonIndex = trimmedText.indexOf(':')
+    const descIndex = trimmedText.indexOf('--')
     let finalText = trimmedText
     let description = ''
     
-    if (colonIndex !== -1) {
-      finalText = trimmedText.substring(0, colonIndex).trim()
-      description = trimmedText.substring(colonIndex + 1).trim()
+    if (descIndex !== -1) {
+      finalText = trimmedText.substring(0, descIndex).trim()
+      description = trimmedText.substring(descIndex + 2).trim()
     }
     
     return {

@@ -177,6 +177,38 @@ const convertJsonToLines = (jsonObj: any, level: number = 0): string[] => {
   return lines
 }
 
+// Convert JSON to the specific format requested (key on one line, value on next line with tab)
+const convertJsonToSimpleLines = (jsonObj: any): string[] => {
+  const lines: string[] = []
+  
+  const processObject = (obj: any, level: number = 0): void => {
+    for (const [key, value] of Object.entries(obj)) {
+      const indent = '\t'.repeat(level)
+      
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        // Nested object - add key and recurse
+        lines.push(`${indent}${key}`)
+        processObject(value, level + 1)
+      } else if (Array.isArray(value)) {
+        // Array - add key and then each item
+        lines.push(`${indent}${key}`)
+        value.forEach((item) => {
+          const childIndent = '\t'.repeat(level + 1)
+          lines.push(`${childIndent}${item}`)
+        })
+      } else {
+        // Primitive value - key on one line, value on next line with tab
+        lines.push(`${indent}${key}`)
+        const valueIndent = '\t'.repeat(level + 1)
+        lines.push(`${valueIndent}${value}`)
+      }
+    }
+  }
+  
+  processObject(jsonObj)
+  return lines
+}
+
 // Handle JSON editing and conversion with debouncing
 let debounceTimer: number | null = null
 
@@ -203,7 +235,7 @@ const handleJsonChange = (value: string) => {
   debounceTimer = setTimeout(() => {
     try {
       const parsedJson = JSON.parse(value)
-      const newLines = convertJsonToLines(parsedJson)
+      const newLines = convertJsonToSimpleLines(parsedJson)
       emit('update:lines', newLines)
     } catch (error) {
       // Silently ignore invalid JSON while typing
@@ -244,12 +276,12 @@ const fixJsonFormat = () => {
     jsonContent.value = formatted
     
     // Trigger immediate conversion with slight delay to ensure proper propagation
-    const newLines = convertJsonToLines(parsed)
+    const newLines = convertJsonToSimpleLines(parsed)
     emit('update:lines', newLines)
     
     // Force a second update after a short delay to ensure MapPad receives the data
     setTimeout(() => {
-      const finalLines = convertJsonToLines(parsed)
+      const finalLines = convertJsonToSimpleLines(parsed)
       emit('update:lines', finalLines)
     }, 100)
     
